@@ -8,9 +8,12 @@ while(True):
 
     text = ""
     if action == "1":
-        text = crawling.crawl()
-        print()
-        print(text)
+        try:
+            text = crawling.crawl()
+            print()
+            print(text)
+        except:
+            continue
 
     elif action == "2":
         text = crawling.crawl()
