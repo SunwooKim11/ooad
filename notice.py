@@ -1,19 +1,19 @@
 import discord
 
 class Notice:
-    def __init__(self, title, target, url):
+    def __init__(self, title, url, header):
         self.title = title
-        self.target = target
         self.url = url
         self.id = url.split('/')[-1]
+        self.header = header
     
     def get_content(self):
-        content = f'모집대상: {self.target}\n'
-        return content
+        pass
 
     def get_title(self):
         return self.title
 
+    # 디스코드 일정 이벤트 추가를 위한 날짜 형식 변환 함수
     def convert_date(self, date):
         date = date.replace('.', '-')
         idx1 = date.rfind('-')
@@ -26,27 +26,35 @@ class Notice:
         return self.id
 
 class CheckInNotice(Notice):
-    def __init__(self, title, target, applyDate, acceptDate, payDate, url):
-        super().__init__(title, target, url)
-        head = applyDate.split('~')[0].strip()
-        tail = applyDate.split('~')[1].strip()
+    def __init__(self, title, target, applyDate, acceptDate, payDate, url, header):
+        super().__init__(title, url, header)
+        if(applyDate.find('~') == -1):
+            self.applyHeadDate = ""
+            self.applyTailDate = ""
+        else:
+            head = applyDate.split('~')[0].strip()
+            tail = applyDate.split('~')[1].strip()
+            self.applyHeadDate = self.convert_date(head)
+            self.applyTailDate = self.convert_date(tail)
+
+        self.target = target
         self.applyDate = applyDate
-        self.applyHeadDate = self.convert_date(head)
-        self.applyTailDate = self.convert_date(tail)
         self.acceptDate = acceptDate
         self.payDate = payDate
     
     def get_content(self):
-        content = f'모집대상: {self.target}\n모집기간: {self.applyDate}\n합격자 발표일: {self.acceptDate}\n입금기간: {self.payDate}\n'
+        content = f'{self.header[0]}: {self.target}\n{self.header[1]}:{self.applyDate}\n{self.header[2]}: {self.acceptDate}\n{self.header[3]}: {self.payDate}\n'
         return content
 
 class CheckOutNotice(Notice):
-    def __init__(self, title, target, outDate, moveDate, url):
-        super().__init__(title, target, url)
+    def __init__(self, title, target, outDate, moveDate, url, header):
+        super().__init__(title, url, header)
         self.outHeadDate = self.convert_date(outDate.split('~')[0].strip())
         self.outTailDate = self.convert_date(outDate.split('~')[1].strip())
+        self.target = target
+        self.outDate = outDate
         self.moveDate = moveDate
 
     def get_content(self):
-        content = f'모집대상: {self.target}\n퇴실기간: {self.outHeadDate} ~ {self.outTailDate}\n호실이동 기간: {self.moveDate}\n'
+        content = f'{self.header[0]}: {self.target}\n{self.header[1]}: {self.outDate}\n{self.header[2]}: {self.moveDate}\n'
         return content

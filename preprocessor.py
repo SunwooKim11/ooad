@@ -1,5 +1,5 @@
 class Preprocessor:
-    async def preprocess_content(self, content, translation=False):
+    async def preprocess_content(self, content, translation=False, lang='ko'):
         text = self.extract_content_from_image(content)
         processed_text = self.process_text(text)
         if translation:
