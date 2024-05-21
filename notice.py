@@ -22,48 +22,74 @@
 5. 2학기 정기모집 납부기간, 여름학기 추가모집 신청기간, 겨울학기 추가모집 신청기간:
     yyyy.mm.dd.(요일) hh:mm ~ yyyy.mm.dd.(요일) hh:mm
 
+1.  yyyy.mm.dd.(요일) ~ yyyy.mm.dd.(요일)
+2. yyyy.mm.dd.(요일) hh시 ~ yyyy.mm.dd.(요일) hh시
+3. yyyy.mm.dd (요일) ~ yyyy.mm.dd (요일) hh시 ~ hh시
+4. yyyy.mm.dd.(요일) hh:mm ~ mm.dd.(요일) hh:mm
+5. yyyy.mm.dd.(요일) hh:mm ~ yyyy.mm.dd.(요일) hh:mm
+이를 출력 head, tail로 내보내는데 ,각 형식은 yyyy-mm-ddThh:mm:ss로 통일하고 싶어.
+
 """
-import discord
+import re
 from datetime import datetime
 
-def convert_date(head, tail):
+def convert_date(date_str):
     try:
         # 패턴 1: yyyy.mm.dd.(요일) ~ yyyy.mm.dd.(요일)
-        if '.' in head and '(' in head and ')' in head and '시' not in head and ':' not in head:
+        match = re.match(r'(\d{4}\.\d{2}\.\d{2}\.\(\w\)) ~ (\d{4}\.\d{2}\.\d{2}\.\(\w\))', date_str)
+        if match:
+            head = match.group(1)
+            tail = match.group(2)
             head_date = datetime.strptime(head[:10], '%Y.%m.%d').strftime('%Y-%m-%dT00:00:00')
             tail_date = datetime.strptime(tail[:10], '%Y.%m.%d').strftime('%Y-%m-%dT00:00:00')
-        
-        # 패턴 2: yyyy.mm.dd.(요일) hh시 ~ yyyy.mm.dd.(요일) hh시
-        elif '.' in head and '(' in head and ')' in head and '시' in head and ':' not in head:
-            head_date = datetime.strptime(head[:14], '%Y.%m.%d %H').strftime('%Y-%m-%dT%H:00:00')
-            tail_date = datetime.strptime(tail[:14], '%Y.%m.%d %H').strftime('%Y-%m-%dT%H:00:00')
+            return head_date, tail_date
 
-        # 패턴 3: yyyy.mm.dd (요일) ~ yyyy.mm.dd (요일) hh시 ~ hh시
-        elif '.' in head and '(' in head and ')' in head and '시' in head and '~' in tail:
-            head_date_part1 = datetime.strptime(head[:10], '%Y.%m.%d').strftime('%Y-%m-%d')
-            tail_date_part1 = datetime.strptime(tail[:10], '%Y.%m.%d').strftime('%Y-%m-%d')
-            head_time = head_date_part1 + 'T' + tail.split('~')[1].strip().replace('시', ':00')
-            tail_time = tail_date_part1 + 'T' + tail.split('~')[2].strip().replace('시', ':00')
-            return head_time, tail_time
+        # 패턴 2: yyyy.mm.dd.(요일) hh시 ~ yyyy.mm.dd.(요일) hh시
+        match = re.match(r'(\d{4}\.\d{2}\.\d{2}\.\(\w\) \d{2}시) ~ (\d{4}\.\d{2}\.\d{2}\.\(\w\) \d{2}시)', date_str)
+        if match:
+            head = match.group(1)
+            tail = match.group(2)
+            head_date = datetime.strptime(head[:14], '%Y.%m.%d. %H시').strftime('%Y-%m-%dT%H:00:00')
+            tail_date = datetime.strptime(tail[:14], '%Y.%m.%d. %H시').strftime('%Y-%m-%dT%H:00:00')
+            return head_date, tail_date
+
+        # 패턴 3: yyyy.mm.dd.(요일) ~ yyyy.mm.dd.(요일) hh시 ~ hh시
+        match = re.match(r'(\d{4}\.\d{2}\.\d{2}\.\(\w\)) ~ (\d{4}\.\d{2}\.\d{2}\.\(\w\)) (\d{2}시 ~ \d{2}시)', date_str)
+        if match:
+            head = match.group(1)
+            tail = match.group(2)
+            times = match.group(3).split(' ~ ')
+            head_time = times[0].replace('시', ':00:00')
+            tail_time = times[1].replace('시', ':00:00')
+            head_date = datetime.strptime(head[:10], '%Y.%m.%d').strftime('%Y-%m-%dT') + head_time
+            tail_date = datetime.strptime(tail[:10], '%Y.%m.%d').strftime('%Y-%m-%dT') + tail_time
+            return head_date, tail_date
 
         # 패턴 4: yyyy.mm.dd.(요일) hh:mm ~ mm.dd.(요일) hh:mm
-        elif '.' in head and '(' in head and ')' in head and '시' not in head and ':' in head:
-            head_date = datetime.strptime(head[:16], '%Y.%m.%d %H:%M').strftime('%Y-%m-%dT%H:%M:00')
-            tail_date = datetime.strptime(tail[:11], '%m.%d').strftime('%Y-') + tail[12:].replace('.', '-') + ':00'
+        match = re.match(r'(\d{4}\.\d{2}\.\d{2}\.\(\w\) \d{2}:\d{2}) ~ (\d{2}\.\d{2}\.\(\w\) \d{2}:\d{2})', date_str)
+        if match:
+            head = match.group(1)
+            tail = match.group(2)
+            head_date = datetime.strptime(head[:16], '%Y.%m.%d. %H:%M').strftime('%Y-%m-%dT%H:%M:00')
+            current_year = datetime.now().year
+            tail_date = datetime.strptime(f"{current_year}.{tail[:11]}", '%Y.%m.%d.').strftime('%Y-%m-%dT') + tail[12:].replace(':', ':00:00')
+            return head_date, tail_date
 
         # 패턴 5: yyyy.mm.dd.(요일) hh:mm ~ yyyy.mm.dd.(요일) hh:mm
-        elif '.' in head and '(' in head and ')' in head and ':' in head and '시' not in head:
-            head_date = datetime.strptime(head[:16], '%Y.%m.%d %H:%M').strftime('%Y-%m-%dT%H:%M:00')
-            tail_date = datetime.strptime(tail[:16], '%Y.%m.%d %H:%M').strftime('%Y-%m-%dT%H:%M:00')
+        match = re.match(r'(\d{4}\.\d{2}\.\d{2}\.\(\w\) \d{2}:\d{2}) ~ (\d{4}\.\d{2}\.\d{2}\.\(\w\) \d{2}:\d{2})', date_str)
+        if match:
+            head = match.group(1)
+            tail = match.group(2)
+            head_date = datetime.strptime(head[:16], '%Y.%m.%d. %H:%M').strftime('%Y-%m-%dT%H:%M:00')
+            tail_date = datetime.strptime(tail[:16], '%Y.%m.%d. %H:%M').strftime('%Y-%m-%dT%H:%M:00')
+            return head_date, tail_date
 
-        else:
-            raise ValueError("Date format not recognized")
-
-        return head_date, tail_date
+        raise ValueError("Date format not recognized")
     except Exception as e:
         print(f"Error in convert_date: {e}")
         return None, None
 
+# Example Notice classes for testing
 class Notice:
     def __init__(self, title, url, header):
         self.title = title
@@ -92,11 +118,10 @@ class CheckInNotice(Notice):
             self.payDate = payDate
 
             if applyDate is None:  # 2학기 정기모집은 payDate만 있음
-                head, tail = payDate.split('~')
+                self.eventHeadDate, self.eventTailDate = convert_date(payDate)
             else:
-                head, tail = applyDate.split('~')
+                self.eventHeadDate, self.eventTailDate = convert_date(applyDate)
 
-            self.eventHeadDate, self.eventTailDate = convert_date(head.strip(), tail.strip())
             if self.eventHeadDate is None or self.eventTailDate is None:
                 raise ValueError("Date format not recognized")
         except Exception as e:
@@ -114,25 +139,14 @@ class CheckOutNotice(Notice):
         self.target = target
         self.outDate = outDate
 
-        head, tail = outDate.split('~')
-        self.eventHeadDate, self.eventTailDate = convert_date(head.strip(), tail.strip())
-        if self.eventHeadDate is None or self.eventTailDate is None:
-            raise ValueError("Date format not recognized")
+        try:
+            self.eventHeadDate, self.eventTailDate = convert_date(outDate)
+            if self.eventHeadDate is None or self.eventTailDate is None:
+                raise ValueError("Date format not recognized")
+        except Exception as e:
+            print(e)
+            self.eventHeadDate, self.eventTailDate = None, None
 
     def get_content(self):
         content = f'{self.header[0]}: {self.target}\n{self.header[1]}: {self.outDate}\n'
         return content
-
-# 패턴들
-"""
-1. 1학기 정기모집 신청기간:
-    yyyy.mm.dd.(요일) ~ yyyy.mm.dd.(요일)
-2. 1학기 추가모집 신청기간:
-    yyyy.mm.dd.(요일) hh시 ~ yyyy.mm.dd.(요일) hh시
-3. 1학기 퇴실기간, 여름학기 퇴실기간, 2학기 퇴실기간, 겨울학기 퇴실기간:
-    yyyy.mm.dd (요일) ~ yyyy.mm.dd (요일) hh시 ~ hh시
-4. 2학기 추가모집 신청기간:
-    yyyy.mm.dd.(요일) hh:mm ~ mm.dd.(요일) hh:mm
-5. 2학기 정기모집 납부기간, 여름학기 추가모집 신청기간, 겨울학기 추가모집 신청기간:
-    yyyy.mm.dd.(요일) hh:mm ~ yyyy.mm.dd.(요일) hh:mm
-"""

@@ -1,10 +1,9 @@
 import json
-from dico_token import KEY
 import aiohttp
 import asyncio
-from notice import *
 
-GUILD_ID = '1239072859746472058'
+from notice import *
+from discord_info import TOKEN, GUILD_ID, CHANNEL_ID
 # ref 
 # 올바른 코드 : https://github.com/Fortex365/Barmaid/blob/main/barmaid/events/scheduled_events.py
 # 원본 글: https://gist.github.com/adamsbytes/8445e2f9a97ae98052297a4415b5356f
@@ -76,7 +75,7 @@ class DiscordEvents:
                 await session.close()
 
 async def create_event(notice):
-    event = DiscordEvents(KEY, GUILD_ID)
+    event = DiscordEvents(TOKEN, GUILD_ID)
 
 
     await event.create_guild_event(notice)

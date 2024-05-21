@@ -11,11 +11,12 @@ class Controller:
 
     def get_notice(self, keyword=None, article_id=None, lang='ko'):
         notice_url, title, image_urls = self.crawler.scrape_notice(keyword, article_id)
-        if title == "":
-            notice = self.preprocessor.make_notice(notice_url, title, image_urls, lang=lang)
-            return notice
-        else:
+        if title is None:
             return "No notices found."
+        else:
+            notice = self.preprocessor.make_notice(notice_url=notice_url, title=title, image_urls=image_urls, lang=lang)
+            print("controller clear")
+            return notice
 
     async def new_notice(self):
         hp_latest_id = self.crawler.get_latest_id()
@@ -38,4 +39,7 @@ async def main():
     print(latest_notice)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # asyncio.run(main())
+    controller = Controller()
+    rst = controller.get_notice('추가모집', None, 'ko')
+    print(rst.eventHeadDate)
