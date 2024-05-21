@@ -2,6 +2,7 @@ import json
 from dico_token import KEY
 import aiohttp
 import asyncio
+from notice import *
 
 GUILD_ID = '1239072859746472058'
 # ref 
@@ -49,11 +50,11 @@ class DiscordEvents:
         The required time format is %Y-%m-%dT%H:%M:%S'''
 
         event_create_url = f'{self.base_api_url}/guilds/{self.guild_id}/scheduled-events'
-
+    
         event_data = json.dumps({
             'name': notice.title,
-            'scheduled_start_time': notice.applyHeadDate,
-            'scheduled_end_time': notice.applyTailDate,
+            'scheduled_start_time': notice.eventHeadDate,
+            'scheduled_end_time': notice.eventTailDate,
             'description': notice.get_content(),
             'entity_metadata': {'location': 'Online'},
             'privacy_level': self.EVENT_PRIVACY_LEVEL,

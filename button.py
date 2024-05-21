@@ -1,5 +1,6 @@
 from event import create_event
 import discord
+from notice import CheckInNotice
 
 lang_label = {
     'ko': '한국어',
@@ -7,6 +8,13 @@ lang_label = {
     'zh-CN': '중국어',
     'ja': '일본어',
     'ru': '러시아어'
+}
+lang_style = {
+    'ko': discord.ButtonStyle.primary,
+    'en': discord.ButtonStyle.secondary,
+    'zh-CN': discord.ButtonStyle.success,
+    'ja': discord.ButtonStyle.danger,
+    'ru': discord.ButtonStyle.primary
 }
 
 class MyButton(discord.ui.Button):
@@ -17,7 +25,7 @@ class MyButton(discord.ui.Button):
                 custom_id = kind + '_' + url_id
                 label = lang_label[kind]
                 self.notice = None
-                style = discord.ButtonStyle.primary
+                style = lang_style[kind]
             else:  # notice가 있을 때
                 self.notice = notice
                 if kind == 'add_sch_button':
@@ -38,9 +46,12 @@ class MyButton(discord.ui.Button):
             id = interaction.data['custom_id']
             if id.startswith('1'):
                 print('add_sch_button')
-                print(self.notice.applyHeadDate, self.notice.applyTailDate)
+                if isinstance(self.notice, CheckInNotice):
+                    print(self.notice.applyDate)
+                else:
+                    print(self.notice.outDate)
                 await create_event(self.notice)
-                await interaction.response.send_message("add_sch_button")
+                await interaction.response.send_message("스케줄 추가 완료!")
             elif id.startswith('2'):
                 print('trans_button')
                 await interaction.response.send_message("언어를 선택해주세요", view=self.get_lang_buttons(self.notice.get_id()))
