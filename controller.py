@@ -29,17 +29,10 @@ class Controller:
     def get_email(self):
         return self.email
 
-async def main():
-    controller = Controller()
-    rst = await controller.get_notice('추가모집', None, 'ko')
-    print(rst)
-
-    # For testing new_notice functionality
-    latest_notice = await controller.new_notice()
-    print(latest_notice)
 
 if __name__ == "__main__":
     # asyncio.run(main())
     controller = Controller()
     rst = controller.get_notice('추가모집', None, 'ko')
-    print(rst.eventHeadDate)
+    print(rst)
+    # print(rst.eventHeadDate)

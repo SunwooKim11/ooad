@@ -27,7 +27,7 @@ async def keyword(ctx, *args):
         print(arg)
         await send_msg(ctx_or_interaction=ctx, lang='ko', keyword=arg, url_id=None)
 
-@tasks.loop(minutes=1)
+@tasks.loop(minutes=5)
 async def send_new_notice(ctx):
     new_url_id = await controller.new_notice()
     print(new_url_id)
@@ -38,7 +38,7 @@ async def send_new_notice(ctx):
 
 @client.command()
 async def ques(ctx):
-    await ctx.send(Controller.get_email())
+    await ctx.send(controller.get_email())
 
 async def send_msg(ctx_or_interaction, lang='ko', keyword=None, url_id=None):
     notice = controller.get_notice(keyword, url_id, lang)
@@ -64,8 +64,8 @@ def get_embed(notice):
         attr = ['target', 'outDate', 'moveDate']
     else:
         pass
-
-    for i in range(len(header)):
+    header_len = 0 if header is None else len(header)
+    for i in range(header_len):
         embed.add_field(name=header[i], value=getattr(notice, attr[i]), inline=False)
 
     return embed

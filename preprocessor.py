@@ -128,7 +128,7 @@ class Preprocessor:
                 elif article_type == 3:
                     notice = CheckOutNotice(title, filtered_lines[0], filtered_lines[1], notice_url, headers)
             else:
-                notice = Notice(title=title, url=notice_url, header=None)
+                notice = Notice(title=title, url=notice_url, header=[])
             return notice
         except Exception as e:
             print(found_keywords)
