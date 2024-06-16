@@ -4,14 +4,14 @@ import base64
 from PIL import Image
 from io import BytesIO
 from bs4 import BeautifulSoup
-from notice import *
+from notice_model import *
 from translator import translate
 
 # 네이버 클로바 OCR API 설정
 API_URL = 'https://jn05k0ttzf.apigw.ntruss.com/custom/v1/31034/a6e67fd060274f7919b7dbfe4e0f5181d60e74f72398e4126bc6339a04e73d08/general'
 API_SECRET = 'WVd5T0xxR25Sa1VvVGFLUFZLallBUnJudHFmZXFHdVg='
 
-class Preprocessor:
+class NoticeCreator:
 
     def make_notice(self, notice_url, title, image_urls, lang='ko'):  # image_urls => content list 
 
@@ -96,20 +96,22 @@ class Preprocessor:
     def extract_infos(self, notice_url, title, contents, lang):
         try:
             article_type, headers = self.set_headers(title)  # 제목에 있는 단어에 따라 keyword를 바꿈
+            len_header = 4 if(article_type == 2) else 2
             title = translate(title, lang) # title 원하는 언어로 설정
             if article_type != 0:
                 filtered_lines = []
-                found_keywords = set()
+                found_keywords = []
                 flag = True
                 for content in contents:  # 제목 이후의 라인들만 처리
                     lines = content.split('\n')
                     for line in lines:
                         for header in headers:
                             if header in line and header not in found_keywords:
+                                print(line)
                                 st_idx = line.find(":") + 2  # hard coding
                                 filtered_lines.append(line[st_idx:])
-                                found_keywords.add(header)
-                                if len(filtered_lines) == len(headers):
+                                found_keywords.append(header)
+                                if len(filtered_lines) == len_header:
                                     flag = False
                                 break  # Once a header is found, stop checking other headers for this line
                         if not flag:
@@ -122,11 +124,11 @@ class Preprocessor:
                 print(article_type)
                 notice = None
                 if article_type == 1:  # 2학기 정기모집
-                    notice = CheckInNotice(title, filtered_lines[0], filtered_lines[1], None, None, notice_url, headers)
+                    notice = CheckInNotice(title, filtered_lines[0], filtered_lines[1], None, None, notice_url, found_keywords)
                 elif article_type == 2:  # 나머지 추가모집, 정기모집
-                    notice = CheckInNotice(title, filtered_lines[0], filtered_lines[1], filtered_lines[2], filtered_lines[3], notice_url, headers)
+                    notice = CheckInNotice(title, filtered_lines[0], filtered_lines[1], filtered_lines[2], filtered_lines[3], notice_url, found_keywords)
                 elif article_type == 3:
-                    notice = CheckOutNotice(title, filtered_lines[0], filtered_lines[1], notice_url, headers)
+                    notice = CheckOutNotice(title, filtered_lines[0], filtered_lines[1], notice_url, found_keywords)
             else:
                 notice = Notice(title=title, url=notice_url, header=[])
             return notice
@@ -144,7 +146,7 @@ class Preprocessor:
             headers = ['납부대상', '납부기간']
         elif any(term in title for term in ['정기모집', '추가모집']):
             article_type = 2
-            headers = ['신청대상', '신청기간', '합격발표', '관비납부']
+            headers = ['신청대상', '신청기간', '합격발표', '관비납부', '납부기간']
         elif '퇴실' in title and not any(term in title for term in ['택배', '입실', '차량', '환불']):
             article_type = 3
             headers = ['대상', '일시']
@@ -155,6 +157,6 @@ if __name__ == "__main__":
     test_url = 'https://dormitory.kookmin.ac.kr/notice/notice/528'
     test_title = '2024-1학기 생활관 퇴실 및 호실이동 안내'
     test_img_url = ['https://wfile.kookmin.ac.kr/files-v2/2024-1%ED%95%99%EA%B8%B0%20%ED%87%B4%EC%8B%A4%20%EB%B0%8F%20%ED%98%B8%EC%8B%A4%EC%9D%B4%EB%8F%99%20%EC%95%88%EB%82%B4001001.png?type=image&id=a919418bcf0f83aa3332ad36256d0408']
-    preprocessor = Preprocessor()
+    preprocessor = NoticeCreator()
     notice = preprocessor.make_notice(test_url, test_title, test_img_url, 'en')
     print(notice.title, notice.target, notice.outDate, notice.url, notice.header)
