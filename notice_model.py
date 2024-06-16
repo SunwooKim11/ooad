@@ -28,59 +28,60 @@ from datetime import datetime
 def convert_date(date_str):
     try:
         # 패턴 1: yyyy.mm.dd.(요일) ~ yyyy.mm.dd.(요일)
-        match = re.match(r'(\d{4}\.\d{2}\.\d{2}\.\(\w\)) ~ (\d{4}\.\d{2}\.\d{2}\.\(\w\))', date_str)
+        match = re.match(r'(\d{4}\.\d{2}\.\d{2})\.\(\w\) ~ (\d{4}\.\d{2}\.\d{2})\.\(\w\)', date_str)
         if match:
             head = match.group(1)
             tail = match.group(2)
-            head_date = datetime.strptime(head[:10], '%Y.%m.%d').strftime('%Y-%m-%dT00:00:00')
-            tail_date = datetime.strptime(tail[:10], '%Y.%m.%d').strftime('%Y-%m-%dT00:00:00')
+            head_date = datetime.strptime(head, '%Y.%m.%d').strftime('%Y-%m-%dT00:00:00')
+            tail_date = datetime.strptime(tail, '%Y.%m.%d').strftime('%Y-%m-%dT23:59:59')
             return head_date, tail_date
 
         # 패턴 2: yyyy.mm.dd.(요일) hh시 ~ yyyy.mm.dd.(요일) hh시
-        match = re.match(r'(\d{4}\.\d{2}\.\d{2}\.\(\w\) \d{2}시) ~ (\d{4}\.\d{2}\.\d{2}\.\(\w\) \d{2}시)', date_str)
+        match = re.match(r'(\d{4}\.\d{2}\.\d{2})\.\(\w\) (\d{2})시 ~ (\d{4}\.\d{2}\.\d{2})\.\(\w\) (\d{2})시', date_str)
         if match:
-            head = match.group(1)
-            tail = match.group(2)
-            head_date = datetime.strptime(head[:15], '%Y.%m.%d. %H시').strftime('%Y-%m-%dT%H:00:00')
-            tail_date = datetime.strptime(tail[:15], '%Y.%m.%d. %H시').strftime('%Y-%m-%dT%H:00:00')
+            head = match.group(1) + ' ' + match.group(2)
+            tail = match.group(3) + ' ' + match.group(4)
+            head_date = datetime.strptime(head, '%Y.%m.%d %H').strftime('%Y-%m-%dT%H:00:00')
+            tail_date = datetime.strptime(tail, '%Y.%m.%d %H').strftime('%Y-%m-%dT%H:00:00')
             return head_date, tail_date
 
         # 패턴 3: yyyy.mm.dd.(요일) ~ yyyy.mm.dd.(요일) hh시 ~ hh시
-        match = re.match(r'(\d{4}\.\d{2}\.\d{2}\.\(\w\)) ~ (\d{4}\.\d{2}\.\d{2}\.\(\w\)) (\d{2}시 ~ \d{2}시)', date_str)
+        match = re.match(r'(\d{4}\.\d{2}\.\d{2})\.\(\w\) ~ (\d{4}\.\d{2}\.\d{2})\.\(\w\) (\d{2})시 ~ (\d{2})시', date_str)
         if match:
-            head = match.group(1)
-            tail = match.group(2)
-            times = match.group(3).split(' ~ ')
-            head_time = times[0].replace('시', ':00:00')
-            tail_time = times[1].replace('시', ':00:00')
-            head_date = datetime.strptime(head[:10], '%Y.%m.%d').strftime('%Y-%m-%dT') + head_time
-            tail_date = datetime.strptime(tail[:10], '%Y.%m.%d').strftime('%Y-%m-%dT') + tail_time
+            head = match.group(1) + ' ' + match.group(3)
+            tail = match.group(2) + ' ' + match.group(4)
+            head_date = datetime.strptime(head, '%Y.%m.%d %H').strftime('%Y-%m-%dT%H:00:00')
+            tail_date = datetime.strptime(tail, '%Y.%m.%d %H').strftime('%Y-%m-%dT%H:00:00')
             return head_date, tail_date
 
         # 패턴 4: yyyy.mm.dd.(요일) hh:mm ~ mm.dd.(요일) hh:mm
-        match = re.match(r'(\d{4}\.\d{2}\.\d{2}\.\(\w\) \d{2}:\d{2}) ~ (\d{2}\.\d{2}\.\(\w\) \d{2}:\d{2})', date_str)
+        match = re.match(r'(\d{4}\.\d{2}\.\d{2})\.\(\w\) (\d{2}:\d{2}) ~ (\d{2}\.\d{2})\.\(\w\) (\d{2}:\d{2})', date_str)
         if match:
-            head = match.group(1)
-            tail = match.group(2)
-            head_date = datetime.strptime(head[:17], '%Y.%m.%d. %H:%M').strftime('%Y-%m-%dT%H:%M:00')
-            current_year = datetime.now().year
-            tail_date = datetime.strptime(f"{current_year}.{tail[:11]}", '%Y.%m.%d.').strftime('%Y-%m-%dT') + tail[12:].replace(':', ':00:00')
+            head = match.group(1) + ' ' + match.group(2)
+            tail = str(datetime.now().year) + '.' + match.group(3) + ' ' + match.group(4)
+            head_date = datetime.strptime(head, '%Y.%m.%d %H:%M').strftime('%Y-%m-%dT%H:%M:00')
+            tail_date = datetime.strptime(tail, '%Y.%m.%d %H:%M').strftime('%Y-%m-%dT%H:%M:00')
             return head_date, tail_date
 
-        # 패턴 5: yyyy.mm.dd.(요일) hh:mm ~ yyyy.mm.dd.(요일) hh:mm
-        match = re.match(r'(\d{4}\.\d{2}\.\d{2}\.\(\w\) \d{2}:\d{2}) ~ (\d{4}\.\d{2}\.\d{2}\.\(\w\) \d{2}:\d{2})', date_str)
+        # 패턴 5: yyyy.mm.dd.(요일) hh:mm ~ yyyy.mm.dd.(요일) hh:mm or yyyy.mm.dd.(요일) hh:mm ~ yyyy.mm.dd.(요일)
+        match = re.match(r'(\d{4}\.\d{2}\.\d{2})\.\(\w\) (\d{2}:\d{2}) ~ (\d{4}\.\d{2}\.\d{2})\.\(\w\)(?: (\d{2}:\d{2}))?', date_str)
         if match:
-            head = match.group(1)
-            tail = match.group(2)
-            head_date = datetime.strptime(head[:17], '%Y.%m.%d. %H:%M').strftime('%Y-%m-%dT%H:%M:00')
-            tail_date = datetime.strptime(tail[:17], '%Y.%m.%d. %H:%M').strftime('%Y-%m-%dT%H:%M:00')
+            head = match.group(1) + ' ' + match.group(2)
+            tail_date_part = match.group(3)
+            if match.group(4):
+                tail = tail_date_part + ' ' + match.group(4)
+                tail_date = datetime.strptime(tail, '%Y.%m.%d %H:%M').strftime('%Y-%m-%dT%H:%M:00')
+            else:
+                tail_date = datetime.strptime(tail_date_part, '%Y.%m.%d').strftime('%Y-%m-%dT23:59:59')
+
+            head_date = datetime.strptime(head, '%Y.%m.%d %H:%M').strftime('%Y-%m-%dT%H:%M:00')
             return head_date, tail_date
 
         raise ValueError("Date format not recognized")
     except Exception as e:
-        print(f"Error in convert_date: {e}")
+        print(f"Error: {e}")
         return None, None
-
+        
 # Example Notice classes for testing
 class Notice:
     def __init__(self, title, url, header):
@@ -142,3 +143,27 @@ class CheckOutNotice(Notice):
     def get_content(self):
         content = f'{self.header[0]}: {self.target}\n{self.header[1]}: {self.outDate}\n'
         return content
+
+# test convert date
+if __name__ == '__main__':
+    # Test the function with both formats
+    date_str1 = "2024.05.30.(목) ~ 2024.06.06.(목)"
+    date_str2 = "2024.05.30.(목) 11시 ~ 2024.06.06.(목) 14시"
+    date_str3 = "2024.05.30.(목) ~ 2024.06.06.(목) 11시 ~ 14시"
+    date_str4 = "2024.05.30.(목) 11:00 ~ 06.06.(목) 14:00"
+    date_str5 = "2024.05.30.(목) 11:00 ~ 2024.06.06.(목) 14:00"
+    date_str6 = "2024.05.30.(목) 11:00 ~ 2024.06.06.(목)"
+
+    head_date1, tail_date1 = convert_date(date_str1)
+    head_date2, tail_date2 = convert_date(date_str2)
+    head_date3, tail_date3 = convert_date(date_str3)
+    head_date4, tail_date4 = convert_date(date_str4)
+    head_date5, tail_date5 = convert_date(date_str5)
+    head_date6, tail_date6 = convert_date(date_str6)
+
+    print(f'head_date1: {head_date1}, tail_date1: {tail_date1}')
+    print(f'head_date2: {head_date2}, tail_date2: {tail_date2}')
+    print(f'head_date3: {head_date3}, tail_date3: {tail_date3}')
+    print(f'head_date4: {head_date4}, tail_date4: {tail_date4}')
+    print(f'head_date5: {head_date5}, tail_date5: {tail_date5}')
+    print(f'head_date6: {head_date6}, tail_date6: {tail_date6}')

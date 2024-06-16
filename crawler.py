@@ -43,13 +43,13 @@ class Crawler:
                 for a_tag in list_tbody.find_all('a'):
                     if keyword in a_tag.text.strip():  # keyword가 포함된 공지사항 찾음
                         idx = a_tag['href'].find('?')
-                        print(a_tag['href'], idx)
+                        # print(a_tag['href'], idx)
                         article_id = a_tag['href'][2:idx]  # ./528 -> 528로 변환
                         break
 
                 if article_id == -1:
                     continue
-                print(f'article_id', article_id)
+                # print(f'article_id', article_id)
                 notice_url, title, image_urls = self.scrape_info_by_id(article_id)  # 게시물 id로 [title, image_url1, image_url2, ...] 얻기
 
                 return notice_url, title, image_urls

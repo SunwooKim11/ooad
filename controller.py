@@ -1,11 +1,12 @@
 import asyncio
 from crawler import Crawler
-from preprocessor import Preprocessor   
+from notice_creator import NoticeCreator   
+from discord_component_creator import DiscordComponentCreator
 
 class Controller:
     def __init__(self):
         self.crawler = Crawler()
-        self.preprocessor = Preprocessor()
+        self.notice_creator = NoticeCreator()
         self.email = "seonu2001@kookmin.ac.kr"
         self.latest_id = '527'
 
@@ -14,11 +15,11 @@ class Controller:
         if title is None:
             return "No notices found."
         else:
-            notice = self.preprocessor.make_notice(notice_url=notice_url, title=title, image_urls=image_urls, lang=lang)
+            notice = self.notice_creator.make_notice(notice_url=notice_url, title=title, image_urls=image_urls, lang=lang)
             print("controller clear")
             return notice
 
-    async def new_notice(self):
+    async def check_new_notice(self):
         hp_latest_id = self.crawler.get_latest_id()
         if(hp_latest_id != self.latest_id):
             self.latest_id = hp_latest_id
@@ -28,6 +29,15 @@ class Controller:
 
     def get_email(self):
         return self.email
+
+    def get_discord_component(self, notice, send_msg):
+        try:
+            view = DiscordComponentCreator.create_view(notice, send_msg)
+            embed = DiscordComponentCreator.create_embed(notice)
+            return view, embed  
+        except Exception as e:
+            print(e)
+            return None, None
 
 
 if __name__ == "__main__":
