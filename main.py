@@ -2,8 +2,9 @@ import discord
 from discord.ext import commands, tasks
 from controller import Controller
 from discord_info import TOKEN, GUILD_ID, CHANNEL_ID
-from notice_model import *
+from notice_model import CheckInNotice
 from discord_component_creator import DiscordComponentCreator
+import time 
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -30,16 +31,23 @@ async def send_new_notice(ctx):
 
 @client.command()
 async def keyword(ctx, *args):
+    begin = time.time()
     if len(args) == 0:
         await ctx.send("공지사항을 검색할 키워드를 입력해주세요.")
     else:
         arg = ' '.join(args)
         print(arg)
         await send_msg(ctx_or_interaction=ctx, lang='ko', keyword=arg, url_id=None)
+        end = time.time()
+        print("키워드 공지 발송 시간(sec): ", end - begin)
 
 @client.command()
 async def ques(ctx):
+    begin = time.time() 
     await ctx.send(controller.get_email())
+    end = time.time()
+    print("이메일 발송 시간(sec): ", end - begin)
+
 
 async def send_msg(ctx_or_interaction, lang='ko', keyword=None, url_id=None):
     try:
@@ -61,21 +69,6 @@ async def send_msg(ctx_or_interaction, lang='ko', keyword=None, url_id=None):
         print(e)
         await ctx_or_interaction.send("Error occurred while sending message.")
 
-# discord embed 생성
-def get_embed(notice):
-    embed = discord.Embed(title=notice.title, url=notice.url, color=0x00ff00)
-    header = notice.header
-    if isinstance(notice, CheckInNotice):
-        attr = ['target', 'applyDate', 'acceptDate', 'payDate']
-    elif isinstance(notice, CheckOutNotice):
-        attr = ['target', 'outDate', 'moveDate']
-    else:
-        pass
-    header_len = 0 if header is None else len(header)
-    for i in range(header_len):
-        embed.add_field(name=header[i], value=getattr(notice, attr[i]), inline=False)
-
-    return embed
 
 if __name__ == '__main__':
     client.run(TOKEN)

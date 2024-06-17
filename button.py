@@ -1,6 +1,7 @@
 from discord_event_handler import create_event
 import discord
 from notice_model import CheckInNotice
+import time
 
 lang_label = {
     'ko': '한국어',
@@ -70,8 +71,11 @@ class MyButton(discord.ui.Button):
 
     async def send_msg_later(self, interaction, lang, url_id):
         await interaction.followup.send("번역을 처리 중입니다. 잠시만 기다려주세요...")
+        begin = time.time()
         # 번역 작업을 비동기로 수행하여 상호작용 시간을 초과하지 않도록 합니다.
         await self.send_msg(ctx_or_interaction=interaction.channel, lang=lang, keyword=None, url_id=url_id)
+        end = time.time()
+        print("번역 소요시간(sec): ", end - begin)
 
     def get_lang_buttons(self, url_id):
         view = discord.ui.View()

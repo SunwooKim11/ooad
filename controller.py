@@ -7,7 +7,7 @@ class Controller:
     def __init__(self):
         self.crawler = Crawler()
         self.notice_creator = NoticeCreator()
-        self.email = "seonu2001@kookmin.ac.kr"
+        self.email = "seonu2001@kookmin.ac.kr | yyk1797@kookmin.ac.kr"
         self.latest_id = '527'
 
     def get_notice(self, keyword=None, article_id=None, lang='ko'):
