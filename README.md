@@ -32,34 +32,11 @@
 
 
 5. 문의하기 기능 제공
-   - 개발자 이메일 주소 제공
+   - 개발자 이메일 주소 제공 -> 추후 채팅 기능으로 변경
    - ![image](https://github.com/user-attachments/assets/8f23b3d4-4b83-4b64-9a13-337161b89663)
 
 # 🚀 Installation
-
-소스 보호하기
-
-git clone https://github.com/SunwooKim/discord-dorm-bot.git
-cd discord-dorm-bot
-
-필요 파일 설치
-
-pip install -r requirements.txt
-
-config.py 설정
-
-Discord Bot Token, Crawling URL, Translation API Key 등을 config.py 파일에 적용
-
-보트 시작
-
-python bot.py
-
-⚙ Configuration
-
-config.py 파일에서 값을 확인하고 보트 설정.
-
-Discord Server에 보트 추가 후, /help 명령으로 사용방법 확인.
-
+- todo
 # 🔧 Built With
 
 - Python - Core language
